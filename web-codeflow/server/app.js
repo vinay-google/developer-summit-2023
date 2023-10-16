@@ -15,11 +15,11 @@
 */
 import express from 'express';
 import path from 'path';
-import { doubleCsrf } from "csrf-csrf";
-import { ironSession } from 'iron-session/express';
+import {doubleCsrf} from "csrf-csrf";
+import {ironSession} from 'iron-session/express';
 import cookieParser from 'cookie-parser';
-import { OAuth2Client } from 'google-auth-library';
-import { saveUser, saveCredentials, loadCredentials } from './db';
+import {OAuth2Client} from 'google-auth-library';
+import {saveUser, saveCredentials, loadCredentials} from './db.js';
 
 // Load service client ID & credentials from env
 const clientId = process.env.VITE_GOOGLE_CLIENT_ID;
@@ -53,11 +53,11 @@ const {
 function asyncHandler(fn) {
   return async (req, res, next) => {
     try {
-      await fn(req, res, next); 
+      await fn(req, res, next);
     } catch (err) {
       console.log(err);
       res.status(500).send();
-    }  
+    }
   }
 }
 
@@ -81,17 +81,17 @@ function requireLogin(...paths) {
 // Middleware to require an active user session for a route
 // Rejects if unauthorized
 function requireAuth(req, res, next) {
-    if (!req.session?.user?.id) {
-      res.status(403).json({error: 'Unauthorized'});
-      return;
-    }
-    next();
-  
+  if (!req.session?.user?.id) {
+    res.status(403).json({error: 'Unauthorized'});
+    return;
+  }
+  next();
+
 }
 
 const app = express();
 
-app.use((req,res,next) => {
+app.use((req, res, next) => {
   console.log(req.path);
   res.set('Referrer-Policy', 'strict-origin-when-cross-origin')
   next();
@@ -101,22 +101,22 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(session);
 app.use(requireLogin('/authorize.html'));
-  
+
 
 // Request a CSRF token
 app.get('/api/csrfToken', asyncHandler(async (req, res) => {
   if (req.session?.csrfToken) {
-    res.json({ csrfToken: req.session.csrfToken });
+    res.json({csrfToken: req.session.csrfToken});
     return;
   }
   const csrfToken = generateToken(res, req);
   req.session.csrfToken = csrfToken;
   await req.session.save();
-  res.json({ csrfToken });
+  res.json({csrfToken});
 }));
 
 app.post('/api/signin', doubleCsrfProtection, asyncHandler(async (req, res) => {
-  const { idToken } = req.body;
+  const {idToken} = req.body;
   // Verify the ID token
   const oauthClient = new OAuth2Client(clientId);
   const ticket = await oauthClient.verifyIdToken({
@@ -149,9 +149,9 @@ app.post('/api/exchangeCode', requireAuth, doubleCsrfProtection, asyncHandler(as
   // Exchange authorization code for a refresh/access token
   const code = req.body.code;
   const oAuth2Client = new OAuth2Client(
-      clientId,
-      clientSecret,
-      redirectUrl,
+    clientId,
+    clientSecret,
+    redirectUrl,
   );
   const oauthResponse = await oAuth2Client.getToken(code);
   const credentials = oauthResponse.tokens;
@@ -163,9 +163,9 @@ app.get('/api/listFiles', requireAuth, asyncHandler(async (req, res) => {
   let credentials = await loadCredentials(req.session.user.id);
   if (!credentials.expiry_date || credentials.expiry_date < Date.now()) {
     const oAuth2Client = new OAuth2Client(
-        clientId,
-        clientSecret,
-        redirectUrl,
+      clientId,
+      clientSecret,
+      redirectUrl,
     );
     oAuth2Client.setCredentials(credentials);
     const response = await oAuth2Client.refreshAccessToken();
@@ -178,7 +178,8 @@ app.get('/api/listFiles', requireAuth, asyncHandler(async (req, res) => {
     orderBy: 'modifiedTime desc',
     pageSize: '10'
   });
-  const driveResponse = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`, {    headers: {
+  const driveResponse = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`, {
+    headers: {
       'Authorization': `Bearer ${credentials.access_token}`
     }
   });
@@ -189,14 +190,10 @@ app.get('/api/listFiles', requireAuth, asyncHandler(async (req, res) => {
   res.status(200).json(body.files);
 }));
 
+// console.log(`__dirname = ${__dirname}`);
+// app.use(express.static(path.join(__dirname, '..', 'dist')));
+// app.use(express.static(path.join(__dirname, '..', 'public')));
 
+app.listen(5000, () => console.log('listening on port 5000'));
 
-if (process.env.NODE_ENV === 'production') {
-  console.log(`__dirname = ${__dirname}`);
-  app.use(express.static(path.join(__dirname, '..', 'dist')));
-  app.use(express.static(path.join(__dirname, '..', 'public')));
-
-  app.listen(5000, () => console.log('listening on port 5000'));
-}
-
-module.exports = app;
+export default app;

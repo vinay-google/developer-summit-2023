@@ -1,10 +1,11 @@
 {
   "name": "next23-workspace-code-flow",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "dev": "cross-env NODE_ENV=develpment vite --host 0.0.0.0",
     "build": "cross-env NODE_ENV=production vite build",
-    "serve": "cross-env NODE_ENV=production node server/app.js"
+    "server": "cross-env NODE_ENV=production node server/app.js"
   },
   "dependencies": {
     "@lit-labs/context": "^0.3.3",

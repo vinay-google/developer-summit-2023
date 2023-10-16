@@ -6,8 +6,8 @@
 /*
  * Import the plugin modules
  */
-import app from './server/app'
-import { resolve } from 'path';
+import app from './server/app.js'
+import {resolve} from 'path';
 
 /*
  * The Express app plugin. Specify the URL base path
@@ -24,7 +24,7 @@ const expressServerPlugin = (path, expressApp) => ({
  * Vite configuration
  */
 export default {
-    build: {
+  build: {
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),

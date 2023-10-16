@@ -124,11 +124,11 @@ export class AuthDemo extends LitElement {
     const scope = 'https://www.googleapis.com/auth/drive.readonly'
     return new Promise((resolve, reject) => {
       const client = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID
+        client_id: CLIENT_ID,
         scope: scope,
         callback: async (response: any) => {
           if (response
-            && response.access_token,
+            && response.access_token
             && google.accounts.oauth2.hasGrantedAnyScope(response, scope)) {
             this._error = null;
             this._accessToken = response.access_token;
@@ -151,7 +151,7 @@ export class AuthDemo extends LitElement {
           }
           reject(err);
         }
-      });      
+      });
       client.requestAccessToken();
     });
   }
