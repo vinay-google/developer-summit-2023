@@ -158,7 +158,10 @@ export class AuthDemo extends LitElement {
     }
 
     return new Promise((resolve, reject) => {
-      google.accounts.oauth2.revoke(this._accessToken, done => resolve(done))
+      google.accounts.oauth2.revoke(this._accessToken, (done) => {
+        this._accessToken = null
+        resolve(done)
+      })
     })
   }
 
