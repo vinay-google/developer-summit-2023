@@ -90,22 +90,48 @@ export class AuthDemo extends LitElement {
     this._error = null;
   }
 
-  render() {
-    let files: TemplateResult | undefined;
-    let error = this._error ?
-      html`<div role class="error">${this._error}</div>` : null;
-
-    if (this._files?.length) {
-      files = html`
-          <div>
-            <h3>Files:</h3>
-            ${this._files.map(f => html`<div class="file">${f.name}</div>`)}
-          </div>`;
+  errorMessage() {
+    if (this._error) {
+      return html`<div class="error">${this._error}</div>`
     }
-    return html`<div class="root">
-        <div><button class="btn" @click="${this._run}">Fetch files</button></div>
-        ${error} ${files}
-      </div>`;
+  }
+
+  filesTemplate() {
+    if (this._files.length) {
+      return html`
+        <div class="files">
+          <h3>Files</h3>
+          <ul>
+            ${this._files.map(file => html`<li class="file">${file.name}</li>`)}
+          </ul>
+        </div>
+      `
+    }
+  }
+
+  revokeTemplate() {
+    if (!this._accessToken) {
+      return
+    }
+
+    return html`
+      <button class="btn" @click=${this._revoke} part="button">
+        Revoke access
+      </button>
+    `
+  }
+
+  render() {
+    return html`
+      <div class="root">
+        ${this.errorMessage()}
+        <button class="btn" @click=${this._run} part="button">
+          Fetch files
+        ${this.revokeTemplate()}
+        </button>
+        ${this.filesTemplate()}
+      </div>
+    `
   }
 
   async _run() {
@@ -114,6 +140,17 @@ export class AuthDemo extends LitElement {
     }
     this._files = await fetchFileList(this._accessToken);
   }
+
+  async _revoke() {
+    if (!this._accessToken) {
+      return
+    }
+
+    return new Promise((resolve, reject) => {
+      google.accounts.oauth2.revoke(this._accessToken, done => resolve(done))
+    })
+  }
+
   /** 
   * Request an access token using the Google Identity Services SDK.
   */
