@@ -54,6 +54,7 @@ export class AuthDemo extends LitElement {
         gap: 4px;
 
       }
+
       .btn {
         font-weight: bold;
         text-transform: uppercase;
@@ -109,15 +110,27 @@ export class AuthDemo extends LitElement {
     }
   }
 
+  fetchTemplate() {
+    return html`
+      <div>
+        <button class="btn" @click=${this._run} part="button">
+          Fetch files
+        </button>
+      </div>
+    `
+  }
+
   revokeTemplate() {
     if (!this._accessToken) {
       return
     }
 
     return html`
-      <button class="btn" @click=${this._revoke} part="button">
-        Revoke access
-      </button>
+      <div>
+        <button class="btn error" @click=${this._revoke} part="button">
+          Revoke access
+        </button>
+      </div>
     `
   }
 
@@ -125,10 +138,8 @@ export class AuthDemo extends LitElement {
     return html`
       <div class="root">
         ${this.errorMessage()}
-        <button class="btn" @click=${this._run} part="button">
-          Fetch files
+        ${this.fetchTemplate()}
         ${this.revokeTemplate()}
-        </button>
         ${this.filesTemplate()}
       </div>
     `
