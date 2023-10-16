@@ -109,13 +109,10 @@ export class AuthDemo extends LitElement {
   }
 
   async _run() {
-    if (this._accessToken && this._tokenExpiresAt > Date.now()) {
-      this._files = await fetchFileList(this._accessToken);
-    } else {
+    if (!this._accessToken || this._tokenExpiresAt < Date.now()) {
       await this._requestAuthorization();
-      this._files = await fetchFileList(this._accessToken!);
-
     }
+    this._files = await fetchFileList(this._accessToken);
   }
   /** 
   * Request an access token using the Google Identity Services SDK.
