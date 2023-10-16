@@ -28,12 +28,12 @@ export class AuthDemo extends LitElement {
 
   @property()
   declare public redirectTo: null | string;
-  
+
   constructor() {
     super();
     this._error = null;
     this.redirectTo = '';
-    
+
     google.accounts.id.initialize({
       client_id: CLIENT_ID,
       callback: (response) => {
@@ -48,30 +48,29 @@ export class AuthDemo extends LitElement {
   connectedCallback() {
     super.connectedCallback()
     google.accounts.id.prompt((notification) => {
-      console.log(notification);
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // One-tap skipped, render button instead
-          const container = this.renderRoot.querySelector('#container')
-          google.accounts.id.renderButton(container, {theme: "filled_blue"});
-        }
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        // One-tap skipped, render button instead
+        const container = this.renderRoot.querySelector('#container')
+        google.accounts.id.renderButton(container, { theme: "filled_blue" });
+      }
     });
   }
-  
+
   render() {
     return html`<div id="container"></div>`
   }
-  
+
   async _signin(token) {
     const csrfToken = await fetchCsrfToken();
     const res = await fetch('/api/signin', {
       method: 'POST',
       credentials: 'same-origin',
       headers: {
-          'Content-Type': 'application/json',
-          'X-csrf-token': csrfToken ?? 'invalid-token',
+        'Content-Type': 'application/json',
+        'X-csrf-token': csrfToken ?? 'invalid-token',
       },
       body: JSON.stringify({
-            idToken: token
+        idToken: token
       }),
     });
     if (res.status >= 400) {
