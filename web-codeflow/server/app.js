@@ -29,7 +29,7 @@ const redirectUrl = 'postmessage';
 // Options for session & CSRF cookies
 const cookieOptions = {
   secure: true,
-  sameSite: process.env.COOKIE_SAMESITE ?? 'lax', // Allow overrideing for repl.it
+  sameSite: process.env.COOKIE_SAMESITE ?? 'lax'
 };
 
 // Session middleware
@@ -48,6 +48,18 @@ const {
   cookieName: 'csrf-token',
   cookieOptions
 });
+
+// Request a CSRF token
+app.get('/api/csrfToken', asyncHandler(async (req, res) => {
+  if (req.session?.csrfToken) {
+    res.json({csrfToken: req.session.csrfToken});
+    return;
+  }
+  const csrfToken = generateToken(res, req);
+  req.session.csrfToken = csrfToken;
+  await req.session.save();
+  res.json({csrfToken});
+}));
 
 // Wrapper around route handlers to catch errors from aync methods
 function asyncHandler(fn) {
@@ -102,18 +114,6 @@ app.use(cookieParser());
 app.use(session);
 app.use(requireLogin('/authorize.html'));
 
-
-// Request a CSRF token
-app.get('/api/csrfToken', asyncHandler(async (req, res) => {
-  if (req.session?.csrfToken) {
-    res.json({csrfToken: req.session.csrfToken});
-    return;
-  }
-  const csrfToken = generateToken(res, req);
-  req.session.csrfToken = csrfToken;
-  await req.session.save();
-  res.json({csrfToken});
-}));
 
 app.post('/api/signin', doubleCsrfProtection, asyncHandler(async (req, res) => {
   const {idToken} = req.body;
